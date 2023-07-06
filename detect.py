@@ -136,6 +136,7 @@ def run(
 
         # Process predictions
         for i, det in enumerate(pred):  # per image
+            lst = []
             seen += 1
             if webcam:  # batch_size >= 1
                 p, im0, frame = path[i], im0s[i].copy(), dataset.count
@@ -170,7 +171,17 @@ def run(
                     if save_img or save_crop or view_img:  # Add bbox to image
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
-                        annotator.box_label(xyxy, label, color=colors(c, True))
+                        
+                        #calculating time taken for colour extraction and centroid
+                        from datetime import datetime
+                        before = datetime.now()
+                        a = annotator.box_label(xyxy, label, color=colors(c, True)) 
+                        after = datetime.now()
+                        duration = after - before
+                        # print(int(duration.microseconds // 1000),"ms")
+                        lst.append(a) 
+                        
+                        
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
 
@@ -214,7 +225,27 @@ def run(
         LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
     if update:
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
+    
 
+    
+    import pickle
+    import socket
+    
+    # Create a socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
+    # Connect to the receiver
+    receiver_address = ('localhost', 1234)
+    sock.connect(receiver_address)
+    
+    # Serialize the data
+    serialized_data = pickle.dumps(lst)
+    
+    # Send the serialized data
+    sock.sendall(serialized_data)
+    
+    # Close the socket
+    sock.close()
 
 def parse_opt():
     parser = argparse.ArgumentParser()
@@ -252,7 +283,7 @@ def parse_opt():
 
 
 def main(opt):
-    check_requirements(ROOT / 'requirements.txt', exclude=('tensorboard', 'thop'))
+    check_requirements(exclude=('tensorboard', 'thop'))
     run(**vars(opt))
 
 

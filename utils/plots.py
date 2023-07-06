@@ -18,7 +18,6 @@ import pandas as pd
 import seaborn as sn
 import torch
 from PIL import Image, ImageDraw, ImageFont
-from scipy.ndimage.filters import gaussian_filter1d
 
 from utils import TryExcept, threaded
 from utils.general import (CONFIG_DIR, FONT, LOGGER, check_font, check_requirements, clip_boxes, increment_path,
@@ -83,9 +82,12 @@ class Annotator:
         else:  # use cv2
             self.im = im
         self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)  # line width
+        
+    
 
     def box_label(self, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
         # Add one xyxy box to image with label
+        coord = []  #my created
         if self.pil or not is_ascii(label):
             self.draw.rectangle(box, width=self.lw, outline=color)  # box
             if label:
@@ -102,12 +104,42 @@ class Annotator:
         else:  # cv2
             p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
             cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
+            
+            from datetime import datetime
+            before = datetime.now()
+            # for color extraction
+            from sklearn.cluster import KMeans
+            object_image = self.im[p1[1]:p2[1], p1[0]:p2[0]]
+            pixels = object_image.reshape(-1, 3)
+            kmeans = KMeans(n_clusters=1, n_init=10)
+            kmeans.fit(pixels)
+            dominant_color = kmeans.cluster_centers_.astype(int)[0]
+            brightness_factor = 1.5
+            dominant_color = tuple(dominant_color.tolist())
+            dominant_color = tuple(int(channel * brightness_factor) for channel in dominant_color)
+            after = datetime.now()
+            duration = after - before
+            print(int(duration.microseconds // 1000),"ms")
+            
+            # for centroid
+            centroid_x = (box[0] + box[2]) // 2
+            centroid_y = (box[1] + box[3]) // 2
+            cv2.circle(self.im, (int(centroid_x), int(centroid_y)), 10, (0,255,0), -1)
+            coord.append(label)
+            coord.append(int(centroid_x))
+            coord.append(int(centroid_y))
+            coord.append("") # z
+            coord.append("") # a
+            coord.append("") # b
+            coord.append("") # c
+            
+            
             if label:
                 tf = max(self.lw - 1, 1)  # font thickness
                 w, h = cv2.getTextSize(label, 0, fontScale=self.lw / 3, thickness=tf)[0]  # text width, height
                 outside = p1[1] - h >= 3
                 p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
-                cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # filled
+                cv2.rectangle(self.im, p1, p2, dominant_color, -1, cv2.LINE_AA)  # filled
                 cv2.putText(self.im,
                             label, (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
                             0,
@@ -115,6 +147,10 @@ class Annotator:
                             txt_color,
                             thickness=tf,
                             lineType=cv2.LINE_AA)
+                
+            
+            return(coord) #created for coordinates sharing
+            
 
     def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):
         """Plot masks at once.
@@ -501,8 +537,7 @@ def plot_results(file='path/to/results.csv', dir=''):
             for i, j in enumerate([1, 2, 3, 4, 5, 8, 9, 10, 6, 7]):
                 y = data.values[:, j].astype('float')
                 # y[y == 0] = np.nan  # don't show zero values
-                ax[i].plot(x, y, marker='.', label=f.stem, linewidth=2, markersize=8)  # actual results
-                ax[i].plot(x, gaussian_filter1d(y, sigma=3), ':', label='smooth', linewidth=2)  # smoothing line
+                ax[i].plot(x, y, marker='.', label=f.stem, linewidth=2, markersize=8)
                 ax[i].set_title(s[j], fontsize=12)
                 # if j in [8, 9, 10]:  # share train and val loss y axes
                 #     ax[i].get_shared_y_axes().join(ax[i], ax[i - 5])
