@@ -49,6 +49,9 @@ from utils.general import (LOGGER, Profile, check_file, check_img_size, check_im
 from utils.plots import Annotator, colors, save_one_box
 from utils.torch_utils import select_device, smart_inference_mode
 
+import pickle
+import socket
+from datetime import datetime
 
 @smart_inference_mode()
 def run(
@@ -173,7 +176,6 @@ def run(
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
                         
                         #calculating time taken for colour extraction and centroid
-                        from datetime import datetime
                         before = datetime.now()
                         a = annotator.box_label(xyxy, label, color=colors(c, True)) 
                         after = datetime.now()
@@ -184,7 +186,9 @@ def run(
                         
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
-
+            
+            share_data(lst) # sharing the list to reciever            
+            
             # Stream results
             im0 = annotator.result()
             if view_img:
@@ -226,11 +230,12 @@ def run(
     if update:
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
     
+    
+   
+    
 
-    
-    import pickle
-    import socket
-    
+# socket code for shairng the list    
+def share_data(lst):
     # Create a socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
@@ -283,6 +288,7 @@ def parse_opt():
 
 
 def main(opt):
+    check_requirements(ROOT / 'requirements.txt', exclude=('tensorboard', 'thop'))
     check_requirements(exclude=('tensorboard', 'thop'))
     run(**vars(opt))
 
