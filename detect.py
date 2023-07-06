@@ -230,9 +230,6 @@ def run(
     if update:
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
     
-    
-   
-    
 
 # socket code for shairng the list    
 def share_data(lst):
