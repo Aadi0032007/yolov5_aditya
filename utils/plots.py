@@ -74,36 +74,41 @@ def check_pil_font(font=FONT, size=10):
 
 # defined function for color and coordinates extraction
 def coordinates_extraction(self, box, label = ''):
-     before = datetime.now()
-     coord = []
-     p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
-     # for color extraction
-     object_image = self.im[p1[1]:p2[1], p1[0]:p2[0]]
-     pixels = object_image.reshape(-1, 3)
-     kmeans = KMeans(n_clusters=1, n_init=10)
-     kmeans.fit(pixels)
-     dominant_color = kmeans.cluster_centers_.astype(int)[0]
-     brightness_factor = 1.5
-     dominant_color = tuple(dominant_color.tolist())
-     dominant_color = tuple(int(channel * brightness_factor) for channel in dominant_color)
-     after = datetime.now()
-     duration = after - before
-     print(int(duration.microseconds // 1000),"ms")
+    before = datetime.now()
+    coord = []
+    p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
+    
+    brightness_factor = 1.5
+
+    # Extract the region of interest (ROI) within the bounding box
+    roi = self.im[p1[1]:p2[1], p1[0]:p2[0]]
+    
+    # Calculate the mode color
+    roi_median_color = np.median(roi, axis=(0, 1))
+
+    # Convert the mode color to tuple format
+    dominant_color = tuple(roi_median_color.tolist())
+    dominant_color = tuple(int(channel * brightness_factor) for channel in dominant_color)
+    
+    after = datetime.now()
+    duration = after - before
+    print(int(duration.microseconds)/1000,"ms")
+    print(dominant_color)
+    
+    # for centroid
+    centroid_x = (box[0] + box[2]) // 2
+    centroid_y = (box[1] + box[3]) // 2
+    cv2.circle(self.im, (int(centroid_x), int(centroid_y)), 10, (0,255,0), -1)
+    coord.append(label)
+    coord.append(int(centroid_x))
+    coord.append(int(centroid_y))
+    coord.append("") # z
+    coord.append("") # a
+    coord.append("") # b
+    coord.append("") # c
      
-     # for centroid
-     centroid_x = (box[0] + box[2]) // 2
-     centroid_y = (box[1] + box[3]) // 2
-     cv2.circle(self.im, (int(centroid_x), int(centroid_y)), 10, (0,255,0), -1)
-     coord.append(label)
-     coord.append(int(centroid_x))
-     coord.append(int(centroid_y))
-     coord.append("") # z
-     coord.append("") # a
-     coord.append("") # b
-     coord.append("") # c
      
-     
-     return coord, dominant_color
+    return coord, dominant_color
 
 
 class Annotator:
@@ -139,10 +144,9 @@ class Annotator:
                 # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
                 self.draw.text((box[0], box[1] - h if outside else box[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
+            coord, dominant_color = coordinates_extraction(self, box, label = '') # calling extraction function
             p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
             cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
-            
-            coord, dominant_color = coordinates_extraction(self, box, label = '') # calling extraction function
             
             
             if label:

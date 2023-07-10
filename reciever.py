@@ -5,36 +5,55 @@ Created on Wed Jul  5 21:14:51 2023
 @author: user
 """
 
-import pickle
 import socket
+import pickle
 
 # Create a socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+# Set a timeout for the socket
+sock.settimeout(30)  # Set the timeout value in seconds
+
 # Bind the socket to a specific address and port
-receiver_address = ('localhost', 1234)
-sock.bind(receiver_address)
+server_address = ('localhost', 1234)
+sock.bind(server_address)
 
 # Listen for incoming connections
 sock.listen(1)
+print('Server is listening on', server_address)
 
-# Accept a connection
-connection, client_address = sock.accept()
+try:
+    # Accept a connection
+    connection = None
+    client_address = None
+    try:
+        connection, client_address = sock.accept()
+        print('Connected by', client_address)
+    except socket.timeout:
+        print('Timeout: No connection received.')
 
-# Receive the data
-received_data = b""
-while True:
-    data = connection.recv(4096)
-    if not data:
-        break
-    received_data += data
+    if connection is not None:
+        # Receive the data from the client
+        received_data = b""
+        while True:
+            try:
+                data = connection.recv(4096)
+                if not data:
+                    print('Connection closed by the client.')
+                    break
+                received_data += data
+                # Deserialize the received data
+                received_list = pickle.loads(received_data)
+                print('Received list:', received_list)
+            except socket.timeout:
+                print('Timeout: No data received.')
+                break
 
-# Deserialize the data
-deserialized_data = pickle.loads(received_data)
+        
 
-# Print the received list
-print(deserialized_data, "\n")
-
-# Close the connection and socket
-connection.close()
-sock.close()
+finally:
+    if connection is not None:
+        # Close the connection
+        connection.close()
+    # Close the socket
+    sock.close()

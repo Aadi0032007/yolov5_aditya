@@ -53,6 +53,13 @@ import pickle
 import socket
 from datetime import datetime
 
+# Create a socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Connect to the receiver
+receiver_address = ('localhost', 1234)
+sock.connect(receiver_address)
+
 @smart_inference_mode()
 def run(
         weights=ROOT / 'yolov5s.pt',  # model path or triton URL
@@ -187,7 +194,13 @@ def run(
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
             
-            share_data(lst) # sharing the list to reciever            
+            # share_data(lst) # sharing the list to reciever     
+            
+            # Serialize the data
+            serialized_data = pickle.dumps(lst)
+            
+            # Send the serialized data
+            sock.sendall(serialized_data)
             
             # Stream results
             im0 = annotator.result()
@@ -229,25 +242,7 @@ def run(
         LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
     if update:
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
-    
-
-# socket code for shairng the list    
-def share_data(lst):
-    # Create a socket
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    
-    # Connect to the receiver
-    receiver_address = ('localhost', 1234)
-    sock.connect(receiver_address)
-    
-    # Serialize the data
-    serialized_data = pickle.dumps(lst)
-    
-    # Send the serialized data
-    sock.sendall(serialized_data)
-    
-    # Close the socket
-    sock.close()
+           
 
 def parse_opt():
     parser = argparse.ArgumentParser()
@@ -288,7 +283,9 @@ def main(opt):
     check_requirements(ROOT / 'requirements.txt', exclude=('tensorboard', 'thop'))
     check_requirements(exclude=('tensorboard', 'thop'))
     run(**vars(opt))
-
+    
+    # Close the socket
+    sock.close()
 
 if __name__ == '__main__':
     opt = parse_opt()
