@@ -56,10 +56,6 @@ from datetime import datetime
 # Create a socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# Connect to the receiver
-receiver_address = ('localhost', 1234)
-sock.connect(receiver_address)
-
 @smart_inference_mode()
 def run(
         weights=ROOT / 'yolov5s.pt',  # model path or triton URL
@@ -89,6 +85,9 @@ def run(
         half=False,  # use FP16 half-precision inference
         dnn=False,  # use OpenCV DNN for ONNX inference
         vid_stride=1,  # video frame-rate stride
+        
+        host = "localhost", # added host and port for socket connection
+        port = 1234
 ):
     source = str(source)
     save_img = not nosave and not source.endswith('.txt')  # save inference images
@@ -193,14 +192,13 @@ def run(
                         
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
-            
-            # share_data(lst) # sharing the list to reciever     
+             
             
             # Serialize the data
             serialized_data = pickle.dumps(lst)
             
-            # Send the serialized data
-            sock.sendall(serialized_data)
+            # # Send the serialized data
+            # sock.sendall(serialized_data)
             
             # Stream results
             im0 = annotator.result()
@@ -243,7 +241,8 @@ def run(
     if update:
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
            
-
+    return serialized_data #created for sending packet, not there earlier
+    
 def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', nargs='+', type=str, default=ROOT / 'yolov5s.pt', help='model path or triton URL')
@@ -273,6 +272,11 @@ def parse_opt():
     parser.add_argument('--half', action='store_true', help='use FP16 half-precision inference')
     parser.add_argument('--dnn', action='store_true', help='use OpenCV DNN for ONNX inference')
     parser.add_argument('--vid-stride', type=int, default=1, help='video frame-rate stride')
+    
+    # added host and port for socket connection
+    parser.add_argument('--host', default="localhost", help='video frame-rate stride')
+    parser.add_argument('--port', type=int, default=1234, help='video frame-rate stride')
+    
     opt = parser.parse_args()
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
     print_args(vars(opt))
@@ -280,12 +284,25 @@ def parse_opt():
 
 
 def main(opt):
-    check_requirements(ROOT / 'requirements.txt', exclude=('tensorboard', 'thop'))
-    check_requirements(exclude=('tensorboard', 'thop'))
-    run(**vars(opt))
+    # Connect to the receiver
+    receiver_address = (opt.host, opt.port)
+    try:
+        sock.connect(receiver_address)
+        
+        # run
+        check_requirements(ROOT / 'requirements.txt', exclude=('tensorboard', 'thop'))
+        check_requirements(exclude=('tensorboard', 'thop'))
+        # run(**vars(opt))
+        serialized_data = run(**vars(opt)) # done to send packet
+        
+        # Send the serialized data
+        sock.sendall(serialized_data)
+        
+        # Close the socket
+        sock.close()
     
-    # Close the socket
-    sock.close()
+    except:
+        print("ERROR : CONNECTION NOT FOUND")
 
 if __name__ == '__main__':
     opt = parse_opt()
