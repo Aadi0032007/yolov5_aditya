@@ -89,6 +89,7 @@ def run(
         host = "localhost", # added host and port for socket connection
         port = 1234
 ):
+    checkpoint_0 = datetime.now()
     source = str(source)
     save_img = not nosave and not source.endswith('.txt')  # save inference images
     is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
@@ -102,12 +103,14 @@ def run(
     save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
     (save_dir / 'labels' if save_txt else save_dir).mkdir(parents=True, exist_ok=True)  # make dir
 
+    checkpoint_1 = datetime.now()
     # Load model
     device = select_device(device)
     model = DetectMultiBackend(weights, device=device, dnn=dnn, data=data, fp16=half)
     stride, names, pt = model.stride, model.names, model.pt
     imgsz = check_img_size(imgsz, s=stride)  # check image size
-
+    
+    checkpoint_2 = datetime.now()
     # Dataloader
     bs = 1  # batch_size
     if webcam:
@@ -119,7 +122,8 @@ def run(
     else:
         dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=vid_stride)
     vid_path, vid_writer = [None] * bs, [None] * bs
-
+    
+    checkpoint_3 = datetime.now()
     # Run inference
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(), Profile(), Profile())
@@ -186,7 +190,7 @@ def run(
                         a = annotator.box_label(xyxy, label, color=colors(c, True)) 
                         after = datetime.now()
                         duration = after - before
-                        # print(int(duration.microseconds // 1000),"ms")
+                        print(int(duration.microseconds // 1000),"ms")
                         lst.append(a) 
                         
                         
@@ -196,9 +200,9 @@ def run(
             
             # Serialize the data
             serialized_data = pickle.dumps(lst)
-            
-            # # Send the serialized data
-            # sock.sendall(serialized_data)
+            checkpoint_4 = datetime.now()
+            # Send the serialized data
+            sock.sendall(serialized_data)
             
             # Stream results
             im0 = annotator.result()
@@ -240,8 +244,9 @@ def run(
         LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
     if update:
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
-           
-    return serialized_data #created for sending packet, not there earlier
+    
+    checkpoint_5 = datetime.now()
+    
     
 def parse_opt():
     parser = argparse.ArgumentParser()
@@ -293,10 +298,14 @@ def main(opt):
         check_requirements(ROOT / 'requirements.txt', exclude=('tensorboard', 'thop'))
         check_requirements(exclude=('tensorboard', 'thop'))
         # run(**vars(opt))
-        serialized_data = run(**vars(opt)) # done to send packet
+        before = datetime.now()
+        run(**vars(opt)) # done to send packet
+        after = datetime.now()
+        duration = after - before
+        # print(int(duration.microseconds // 1000),"ms")
         
-        # Send the serialized data
-        sock.sendall(serialized_data)
+        # # Send the serialized data
+        # sock.sendall(serialized_data)
         
         # Close the socket
         sock.close()

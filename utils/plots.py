@@ -27,7 +27,6 @@ from utils.metrics import fitness
 from utils.segment.general import scale_image
 
 from datetime import datetime
-from sklearn.cluster import KMeans
 
 # Settings
 RANK = int(os.getenv('RANK', -1))
@@ -92,8 +91,8 @@ def coordinates_extraction(self, box, label = ''):
     
     after = datetime.now()
     duration = after - before
-    print(int(duration.microseconds)/1000,"ms")
-    print(dominant_color)
+    # print(int(duration.microseconds)/1000,"ms")
+    # print(dominant_color)
     
     # for centroid
     centroid_x = (box[0] + box[2]) // 2
