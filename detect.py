@@ -199,10 +199,10 @@ def run(
              
             
             # Serialize the data
-            serialized_data = pickle.dumps(lst)
+            # serialized_data = pickle.dumps(lst) # remove comment
             checkpoint_4 = datetime.now()
             # Send the serialized data
-            sock.sendall(serialized_data)
+            # sock.sendall(serialized_data) # remove comment
             
             # Stream results
             im0 = annotator.result()
@@ -246,6 +246,8 @@ def run(
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
     
     checkpoint_5 = datetime.now()
+    
+    return lst
     
     
 def parse_opt():
