@@ -191,6 +191,7 @@ def run(
                         after = datetime.now()
                         duration = after - before
                         print(int(duration.microseconds // 1000),"ms")
+                        a.insert(0, len(det))
                         lst.append(a) 
                         
                         

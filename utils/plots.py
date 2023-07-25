@@ -72,7 +72,7 @@ def check_pil_font(font=FONT, size=10):
         
 
 # defined function for color and coordinates extraction
-def coordinates_extraction(self, box, label = ''):
+def coordinates_extraction(self, box, label):
     before = datetime.now()
     coord = []
     p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
@@ -143,7 +143,7 @@ class Annotator:
                 # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
                 self.draw.text((box[0], box[1] - h if outside else box[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
-            coord, dominant_color = coordinates_extraction(self, box, label = '') # calling extraction function
+            coord, dominant_color = coordinates_extraction(self, box, label) # calling extraction function
             p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
             cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
             
