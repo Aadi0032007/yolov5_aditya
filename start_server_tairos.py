@@ -14,18 +14,6 @@ import tempfile
 import time
 import pickle
 
-# Create a socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-# Bind the socket to a specific address and port
-host = "localhost"
-port = 1234
-sock.bind((host, port))
-
-# Listen for incoming connections
-sock.listen(1)
-print(f"Listening on {host}:{port}")
-
 # Add YOLOv5 folder to the sys.path
 yolov5_path = "C:/Users/AI/Aditya_project/yolov5_aditya"  
 sys.path.append(yolov5_path)
@@ -37,6 +25,17 @@ weights = os.path.join(yolov5_path, 'yolov5x_bottle.pt')  # Replace with the pat
 iou_thres = 0.55
 augment = True
 
+# Create a socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Bind the socket to a specific address and port
+host = "localhost"
+port = 1234
+sock.bind((host, port))
+
+# Listen for incoming connections
+sock.listen(1)
+print(f"Listening on {host}:{port}")
 
 while True:
     # Wait for a connection
