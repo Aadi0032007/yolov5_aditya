@@ -14,17 +14,6 @@ import tempfile
 import time
 import pickle
 
-# Add YOLOv5 folder to the sys.path
-yolov5_path = "C:/Users/AI/Aditya_project/yolov5_aditya"  
-sys.path.append(yolov5_path)
-
-# Import the run function
-from detect import run
- # Provide the required arguments for the run function
-weights = os.path.join(yolov5_path, 'yolov5x_bottle.pt')  # Replace with the path to your model weights
-iou_thres = 0.55
-augment = True
-
 # Create a socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -36,6 +25,18 @@ sock.bind((host, port))
 # Listen for incoming connections
 sock.listen(1)
 print(f"Listening on {host}:{port}")
+
+# Add YOLOv5 folder to the sys.path
+yolov5_path = "C:/Users/AI/Aditya_project/yolov5_aditya"  
+sys.path.append(yolov5_path)
+
+# Import the run function
+from detect import run
+ # Provide the required arguments for the run function
+weights = os.path.join(yolov5_path, 'yolov5x_bottle.pt')  # Replace with the path to your model weights
+iou_thres = 0.55
+augment = True
+
 
 while True:
     # Wait for a connection
