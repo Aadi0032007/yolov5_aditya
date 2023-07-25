@@ -190,7 +190,7 @@ def run(
                         a = annotator.box_label(xyxy, label, color=colors(c, True)) 
                         after = datetime.now()
                         duration = after - before
-                        print(int(duration.microseconds // 1000),"ms")
+                        # print(int(duration.microseconds // 1000),"ms")
                         a.insert(0, len(det))
                         lst.append(a) 
                         
