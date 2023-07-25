@@ -200,10 +200,10 @@ def run(
              
             
             # Serialize the data
-            # serialized_data = pickle.dumps(lst) # remove comment
+            serialized_data = pickle.dumps(lst) # remove comment
             checkpoint_4 = datetime.now()
             # Send the serialized data
-            # sock.sendall(serialized_data) # remove comment
+            sock.sendall(serialized_data) # remove comment
             
             # Stream results
             im0 = annotator.result()

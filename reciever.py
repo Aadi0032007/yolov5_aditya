@@ -22,6 +22,15 @@ sock.bind(server_address)
 sock.listen(1)
 print('Server is listening on', server_address)
 
+def flatten_list(lst):
+    flattened = []
+    for item in lst:
+        if isinstance(item, list):
+            flattened.extend(flatten_list(item))
+        else:
+            flattened.append(str(item))
+    return flattened
+
 try:
     # Accept a connection
     connection = None
@@ -44,7 +53,9 @@ try:
                 received_data += data
                 # Deserialize the received data
                 received_list = pickle.loads(received_data)
-                print('Received list:', received_list)
+                # Flatten the list and remove brackets
+                response_msg = ', '.join(flatten_list(received_list))
+                print('Received list:', response_msg)
             except socket.timeout:
                 print('Timeout: No data received.')
                 break

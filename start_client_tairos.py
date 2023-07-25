@@ -20,6 +20,15 @@ port = 1234
 sock.connect((host, port))
 print(f"Connected to {host}:{port}")
 
+def flatten_list(lst):
+    flattened = []
+    for item in lst:
+        if isinstance(item, list):
+            flattened.extend(flatten_list(item))
+        else:
+            flattened.append(str(item))
+    return flattened
+
 def send_image(image_path):
     
     global sock
@@ -40,7 +49,10 @@ def send_image(image_path):
     #Test Start
     #time.sleep(20)
     response = sock.recv(4096)
-    response_msg = pickle.loads(response)
+    response_lst = pickle.loads(response)
+    # Flatten the list and remove brackets
+    response_msg = ', '.join(flatten_list(response_lst))
+    
     print("Recieved response: ", response_msg)
     #Test Ends
        
