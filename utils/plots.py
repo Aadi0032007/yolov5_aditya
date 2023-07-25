@@ -101,10 +101,7 @@ def coordinates_extraction(self, box, label):
     coord.append(label)
     coord.append(int(centroid_x))
     coord.append(int(centroid_y))
-    coord.append("") # z
-    coord.append("") # a
-    coord.append("") # b
-    coord.append("") # c
+   
      
      
     return coord, dominant_color
