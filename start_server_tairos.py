@@ -51,7 +51,8 @@ while True:
                 break
             
             # Convert the image length bytes to an integer
-            img_len = int.from_bytes(img_len_bytes, 'big')            
+            img_len = int.from_bytes(img_len_bytes, 'big')
+            print("image length : ",img_len)            
             
             # Receive the image data
             image_data = b""
