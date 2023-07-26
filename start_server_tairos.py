@@ -52,7 +52,7 @@ while True:
             
             # Convert the image length bytes to an integer
             img_len = int.from_bytes(img_len_bytes, 'big')
-            print("image length : ",img_len)            
+            print("Image data length : ",img_len)            
             
             # Receive the image data
             image_data = b""
@@ -68,7 +68,7 @@ while True:
                 print("Connection closed by client.")
                 break
             
-            print ("Recieved data size: ", len(image_data))
+            # print ("Recieved data size: ", len(image_data))
 
             # Convert the image data to a NumPy array
             nparr = np.frombuffer(image_data, dtype=np.uint8)
