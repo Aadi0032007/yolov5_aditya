@@ -19,7 +19,7 @@ import seaborn as sn
 import torch
 from PIL import Image, ImageDraw, ImageFont
 from scipy.ndimage.filters import gaussian_filter1d
-import webcolors
+
 
 from utils import TryExcept, threaded
 from utils.general import (CONFIG_DIR, FONT, LOGGER, check_font, check_requirements, clip_boxes, increment_path,
