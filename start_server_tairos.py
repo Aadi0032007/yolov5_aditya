@@ -47,7 +47,7 @@ while True:
             # Receive the image length
             img_len_bytes = conn.recv(4)
             if not img_len_bytes:
-                print("Connection closed by client.")
+                print("Didn't recieve image length.")
                 break
             
             # Convert the image length bytes to an integer
@@ -61,6 +61,7 @@ while True:
                 if len(data) < 4096:
                     break
                 image_data += data
+                
 
             # If no more data is received, the connection is closed
             if not image_data:
@@ -91,7 +92,7 @@ while True:
             # Here, we simply show the image
             # cv2.imshow("Received Image", img)
                        
-            print("Image opened in new window by name Recieved Image")
+            # print("Image opened in new window by name Recieved Image")
             
             response = pickle.dumps(output)
             
