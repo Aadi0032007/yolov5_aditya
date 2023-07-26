@@ -33,9 +33,12 @@ host = "localhost"
 port = 1234
 sock.bind((host, port))
 
+count = 0
+
 # Listen for incoming connections
 sock.listen(1)
 print(f"Listening on {host}:{port}")
+
 
 while True:
     # Wait for a connection
@@ -57,10 +60,11 @@ while True:
             # Receive the image data
             image_data = b""
             while True:
+                count+=1
                 data = conn.recv(4096)
-                if len(data) < 4096:
-                    # break
-                    print(len(data))
+                print(len(data),count)
+                if len(data) < 1:
+                    break
                 image_data += data
                 
 
