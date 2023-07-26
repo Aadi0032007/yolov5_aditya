@@ -44,6 +44,15 @@ while True:
 
     try:
         while True:
+            # Receive the image length
+            img_len_bytes = conn.recv(4)
+            if not img_len_bytes:
+                print("Connection closed by client.")
+                break
+            
+            # Convert the image length bytes to an integer
+            img_len = int.from_bytes(img_len_bytes, 'big')            
+            
             # Receive the image data
             image_data = b""
             while True:
@@ -64,6 +73,7 @@ while True:
 
             # Decode the NumPy array to an OpenCV image
             img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            
             # Save the cv2 image to a temporary file
             with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_img:
                 temp_image_path = tmp_img.name

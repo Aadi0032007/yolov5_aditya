@@ -41,6 +41,20 @@ def send_image(image_path):
 
     # Convert the encoded image to bytes
     img_bytes = img_encoded.tobytes()
+    
+    
+    # Get the length of the image data
+    img_len = len(img_bytes)
+
+    # Convert the image length to bytes
+    img_len_bytes = img_len.to_bytes(4, 'big')
+
+    # Send the image length over the socket to the server
+    sock.sendall(img_len_bytes)
+    print("Image length sent to the server")
+    
+    # Wait for a short delay (optional)
+    time.sleep(1)
 
     # Send the image data over the socket to the server
     sock.sendall(img_bytes)

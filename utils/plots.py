@@ -19,6 +19,7 @@ import seaborn as sn
 import torch
 from PIL import Image, ImageDraw, ImageFont
 from scipy.ndimage.filters import gaussian_filter1d
+import webcolors
 
 from utils import TryExcept, threaded
 from utils.general import (CONFIG_DIR, FONT, LOGGER, check_font, check_requirements, clip_boxes, increment_path,
@@ -27,6 +28,7 @@ from utils.metrics import fitness
 from utils.segment.general import scale_image
 
 from datetime import datetime
+import matplotlib.colors as mcolors
 
 # Settings
 RANK = int(os.getenv('RANK', -1))
@@ -71,13 +73,23 @@ def check_pil_font(font=FONT, size=10):
             return ImageFont.load_default()
         
 
+
+def rgb_to_color_name(rgb):
+    # Convert RGB values to normalized values (0 to 1)
+    normalized_rgb = [channel / 255.0 for channel in rgb]
+
+    # Find the closest color name in the cnames dictionary
+    closest_color = min(mcolors.CSS4_COLORS, key=lambda color: sum((a - b) ** 2 for a, b in zip(normalized_rgb, mcolors.colorConverter.to_rgba(color)[:3])))
+
+    return closest_color
+
 # defined function for color and coordinates extraction
 def coordinates_extraction(self, box, label):
     before = datetime.now()
     coord = []
     p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
     
-    brightness_factor = 1.5
+    brightness_factor = 1
 
     # Extract the region of interest (ROI) within the bounding box
     roi = self.im[p1[1]:p2[1], p1[0]:p2[0]]
@@ -88,6 +100,7 @@ def coordinates_extraction(self, box, label):
     # Convert the mode color to tuple format
     dominant_color = tuple(roi_median_color.tolist())
     dominant_color = tuple(int(channel * brightness_factor) for channel in dominant_color)
+    color = rgb_to_color_name(dominant_color)
     
     after = datetime.now()
     duration = after - before
@@ -98,7 +111,7 @@ def coordinates_extraction(self, box, label):
     centroid_x = (box[0] + box[2]) // 2
     centroid_y = (box[1] + box[3]) // 2
     cv2.circle(self.im, (int(centroid_x), int(centroid_y)), 10, (0,255,0), -1)
-    coord.append(label)
+    coord.append(color)
     coord.append(int(centroid_x))
     coord.append(int(centroid_y))
     coord.append(0) # z
