@@ -73,6 +73,7 @@ def send_image(image_path):
     
 # Replace 'image_path' with the path to your image
 image_path = 'C:/Users/AI/Aditya_project/test_images/Test.jpg'
+# image_path = "C:/Users/user/Downloads/test_image_3.jpg" # change back
 before = datetime.now()
 send_image(image_path)
 after = datetime.now()

@@ -15,8 +15,9 @@ import time
 import pickle
 
 # Add YOLOv5 folder to the sys.path
-yolov5_path = "C:/Users/AI/Aditya_project/yolov5_aditya"  
-sys.path.append(yolov5_path)
+yolov5_path = "C:/Users/AI/Aditya_project/yolov5_aditya"
+# yolov5_path = "C:/Users/user/Spyder Project/YOLOv5/yolov5_aditya"   # change back
+sys.path.append(yolov5_path) 
 
 # Import the run function
 from detect import run
@@ -63,7 +64,7 @@ while True:
                 count+=1
                 data = conn.recv(4096)
                 print(len(data),count)
-                if len(data) < 1:
+                if len(data) < 4096:
                     break
                 image_data += data
                 
