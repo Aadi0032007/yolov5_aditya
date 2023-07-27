@@ -64,7 +64,7 @@ while True:
                 count+=1
                 data = conn.recv(4096)
                 print(len(data),count)
-                if len(data) < 4096:
+                if len(data) < 1:
                     break
                 image_data += data
                 
