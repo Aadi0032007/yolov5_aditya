@@ -15,8 +15,8 @@ import time
 from datetime import datetime
 
 # Add YOLOv5 folder to the sys.path
-# yolov5_path = "C:/Users/AI/Aditya_project/yolov5_aditya"
-yolov5_path = "C:/Users/user/Spyder Project/YOLOv5/yolov5_aditya"   # change back
+yolov5_path = "C:/Users/AI/Aditya_project/yolov5_aditya"
+# yolov5_path = "C:/Users/user/Spyder Project/YOLOv5/yolov5_aditya"   # change back
 sys.path.append(yolov5_path) 
 
 # Import the run function
