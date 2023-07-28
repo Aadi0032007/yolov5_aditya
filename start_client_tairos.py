@@ -38,41 +38,50 @@ def send_image(image_path):
 
     # Convert the image length to bytes
     img_len_bytes = img_len.to_bytes(8, 'big')
-
-    # Send the image length over the socket to the server
-    sock.sendall(img_len_bytes)
-    # print("Image length sent to the server")
     
-    # # Wait for a short delay (optional)
-    # time.sleep(1)
-
-    # Send the image data over the socket to the server
-    sock.sendall(img_bytes)
-    # print("Image sent to the server")
-
+    count = 0
+    while True:
+        before = datetime.now()
+        # Send the image length over the socket to the server
+        sock.sendall(img_len_bytes)
+        # print("Image length sent to the server")
+        
+        # # Wait for a short delay (optional)
+        # time.sleep(1)
     
-    #time.sleep(20)
-    # recive response length
-    response_len_bytes = sock.recv(8)
-    response_len = int.from_bytes(response_len_bytes, 'big')
+        # Send the image data over the socket to the server
+        sock.sendall(img_bytes)
+        # print("Image sent to the server")
     
-    # recive response
-    response = sock.recv(4096)
-    response_msg = response.decode()
-    
-    print("Recieved response length: ", response_len)
-    print("Recieved response: ", response_msg)
+        
+        #time.sleep(20)
+        # recive response length
+        response_len_bytes = sock.recv(8)
+        response_len = int.from_bytes(response_len_bytes, 'big')
+        
+        # recive response
+        response = sock.recv(response_len)
+        response_msg = response.decode()
+        
+        print("Recieved response length: ", response_len)
+        print("Recieved response: ", response_msg)
+        after = datetime.now()
+        
+        duration = after - before
+        print(int(duration.microseconds // 1000),"ms")
+        count+=1
+        print("count :",count)
+        
+        if (count==25):
+            break
     
        
     
 # Replace 'image_path' with the path to your image
-image_path = 'C:/Users/AI/Aditya_project/test_images/Test.jpg'
-# image_path = "C:/Users/user/Downloads/test_image_3.jpg" # change back
-before = datetime.now()
+# image_path = 'C:/Users/AI/Aditya_project/test_images/Test.jpg'
+image_path = "C:/Users/user/Downloads/test_image_3.jpg" # change back
 send_image(image_path)
-after = datetime.now()
-duration = after - before
-print(int(duration.microseconds // 1000),"ms")
+
 
 # Close the socket
 sock.close()

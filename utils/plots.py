@@ -134,7 +134,7 @@ class Annotator:
                                        size=font_size or max(round(sum(self.im.size) / 2 * 0.035), 12))
         else:  # use cv2
             self.im = im
-        self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)  # line width
+        # self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)  # line width
         
     
     def box_label(self, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
@@ -155,23 +155,23 @@ class Annotator:
                 self.draw.text((box[0], box[1] - h if outside else box[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
             coord, dominant_color = coordinates_extraction(self, box, label) # calling extraction function
-            p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
-            cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
+            # p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
+            # cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
             
             
-            if label:
-                tf = max(self.lw - 1, 1)  # font thickness
-                w, h = cv2.getTextSize(label, 0, fontScale=self.lw / 3, thickness=tf)[0]  # text width, height
-                outside = p1[1] - h >= 3
-                p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
-                cv2.rectangle(self.im, p1, p2, dominant_color, -1, cv2.LINE_AA)  # filled, changed from color to dominant color
-                cv2.putText(self.im,
-                            label, (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
-                            0,
-                            self.lw / 3,
-                            txt_color,
-                            thickness=tf,
-                            lineType=cv2.LINE_AA)
+            # if label:
+            #     tf = max(self.lw - 1, 1)  # font thickness
+            #     w, h = cv2.getTextSize(label, 0, fontScale=self.lw / 3, thickness=tf)[0]  # text width, height
+            #     outside = p1[1] - h >= 3
+            #     p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
+            #     cv2.rectangle(self.im, p1, p2, dominant_color, -1, cv2.LINE_AA)  # filled, changed from color to dominant color
+            #     cv2.putText(self.im,
+            #                 label, (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
+            #                 0,
+            #                 self.lw / 3,
+            #                 txt_color,
+            #                 thickness=tf,
+            #                 lineType=cv2.LINE_AA)
                 
             
         return(coord) #created for coordinates sharing

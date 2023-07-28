@@ -2,7 +2,7 @@
 """
 Created on Tue Jul 25 00:40:29 2023
 
-@author: user
+@author: aadi
 """
 
 import socket
@@ -12,15 +12,15 @@ import os
 import sys
 import tempfile
 import time
-import pickle
+from datetime import datetime
 
 # Add YOLOv5 folder to the sys.path
-yolov5_path = "C:/Users/AI/Aditya_project/yolov5_aditya"
-# yolov5_path = "C:/Users/user/Spyder Project/YOLOv5/yolov5_aditya"   # change back
+# yolov5_path = "C:/Users/AI/Aditya_project/yolov5_aditya"
+yolov5_path = "C:/Users/user/Spyder Project/YOLOv5/yolov5_aditya"   # change back
 sys.path.append(yolov5_path) 
 
 # Import the run function
-from detect import run
+from detect import run,load_model
  # Provide the required arguments for the run function
 weights = os.path.join(yolov5_path, 'yolov5x_bottle.pt')  # Replace with the path to your model weights
 iou_thres = 0.55
@@ -35,11 +35,12 @@ port = 8008
 sock.bind((host, port))
 
 count = 0
+total_time = 0
 
 # Listen for incoming connections
 sock.listen(1)
 print(f"Listening on {host}:{port}")
-
+model,stride,names,pt = load_model(weights=weights)
 
 while True:
     # Wait for a connection
@@ -92,7 +93,13 @@ while True:
             
             # print("Running detection..")
             # Call the run function
-            output = run(weights=weights, source=temp_image_path, iou_thres=iou_thres,augment=augment)
+            before = datetime.now()
+            output = run(weights=weights, source=temp_image_path, iou_thres=iou_thres,augment=augment,
+                         model=model,stride=stride,names=names,pt=pt)
+            after = datetime.now()
+            duration = after - before
+            total_time+=int( duration.microseconds // 1000)
+            print("inference time : ",int( duration.microseconds // 1000),"ms")
 
             # Remove the temporary image file
             os.remove(temp_image_path)
@@ -118,4 +125,5 @@ while True:
     finally:
         # Close the connection
         conn.close()
+        print("avg inference time :",total_time//25)
         sys.exit()
