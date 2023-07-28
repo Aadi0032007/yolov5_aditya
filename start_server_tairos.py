@@ -31,7 +31,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Bind the socket to a specific address and port
 host = "localhost"
-port = 1234
+port = 8008
 sock.bind((host, port))
 
 count = 0
@@ -49,7 +49,7 @@ while True:
     try:
         while True:
             # Receive the image length
-            img_len_bytes = conn.recv(4)
+            img_len_bytes = conn.recv(8)
             if not img_len_bytes:
                 print("Didn't recieve image length.")
                 break
@@ -63,8 +63,8 @@ while True:
             while True:
                 count+=1
                 data = conn.recv(4096)
-                print(len(data),count)
-                if len(data) < 1:
+                # print(len(data),count)
+                if len(data) < 4096:
                     break
                 image_data += data
                 
@@ -75,47 +75,47 @@ while True:
                 break
             
             # print ("Recieved data size: ", len(image_data))
+            # print("Converting Buffer to Arary.")
 
             # Convert the image data to a NumPy array
             nparr = np.frombuffer(image_data, dtype=np.uint8)
 
+            # print("Converting Array to Image.")
             # Decode the NumPy array to an OpenCV image
             img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
             
+            # print("Temp file created.")
             # Save the cv2 image to a temporary file
             with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_img:
                 temp_image_path = tmp_img.name
                 cv2.imwrite(temp_image_path, img)
             
-            print("Running detection..")
+            # print("Running detection..")
             # Call the run function
             output = run(weights=weights, source=temp_image_path, iou_thres=iou_thres,augment=augment)
-            
+
             # Remove the temporary image file
             os.remove(temp_image_path)
             
-            # Process the image data (e.g., save to a file, display, etc.)
-            # Here, we simply show the image
-            # cv2.imshow("Received Image", img)
-                       
-            # print("Image opened in new window by name Recieved Image")
+                        
+            # encoding response
+            response = output.encode()
+           
+            # encoding rsponse lenghth 
+            response_len = len(response).to_bytes(8, 'big')
+            # print('Sending Response Length')
+            conn.send(response_len)
             
-            response = pickle.dumps(output)
+            # # Wait for a short delay (optional)
+            # time.sleep(1)
             
-            #Test Start
-            print('Sending Response')
+            # print('Sending Response')
             # response = 'Add Yolo Output Here'
             conn.send(response)
             print('sent response')
-            #Test End
             
-            # # Wait for a key press
-            # key = cv2.waitKey(0)
-
-            # # If the key is the escape key (ASCII value 27), close the window
-            # if key == 27:
-            #     cv2.destroyAllWindows()
 
     finally:
         # Close the connection
         conn.close()
+        sys.exit()

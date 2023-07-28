@@ -8,7 +8,6 @@ Created on Tue Jul 25 00:42:06 2023
 import socket
 import time
 import cv2
-import pickle
 from datetime import datetime
 
 # Create a socket
@@ -16,18 +15,9 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Connect to the server
 host = "localhost"
-port = 1234
+port = 8008
 sock.connect((host, port))
 print(f"Connected to {host}:{port}")
-
-def flatten_list(lst):
-    flattened = []
-    for item in lst:
-        if isinstance(item, list):
-            flattened.extend(flatten_list(item))
-        else:
-            flattened.append(str(item))
-    return flattened
 
 def send_image(image_path):
     
@@ -47,28 +37,32 @@ def send_image(image_path):
     img_len = len(img_bytes)
 
     # Convert the image length to bytes
-    img_len_bytes = img_len.to_bytes(4, 'big')
+    img_len_bytes = img_len.to_bytes(8, 'big')
 
     # Send the image length over the socket to the server
     sock.sendall(img_len_bytes)
-    print("Image length sent to the server")
+    # print("Image length sent to the server")
     
-    # Wait for a short delay (optional)
-    time.sleep(1)
+    # # Wait for a short delay (optional)
+    # time.sleep(1)
 
     # Send the image data over the socket to the server
     sock.sendall(img_bytes)
-    print("Image sent to the server")
+    # print("Image sent to the server")
 
-    #Test Start
-    #time.sleep(20)
-    response = sock.recv(4096)
-    response_lst = pickle.loads(response)
-    # Flatten the list and remove brackets
-    response_msg = ', '.join(flatten_list(response_lst))
     
+    #time.sleep(20)
+    # recive response length
+    response_len_bytes = sock.recv(8)
+    response_len = int.from_bytes(response_len_bytes, 'big')
+    
+    # recive response
+    response = sock.recv(4096)
+    response_msg = response.decode()
+    
+    print("Recieved response length: ", response_len)
     print("Recieved response: ", response_msg)
-    #Test Ends
+    
        
     
 # Replace 'image_path' with the path to your image

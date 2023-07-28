@@ -248,7 +248,18 @@ def run(
     
     checkpoint_5 = datetime.now()
     
-    return lst
+    flatten_list(lst)
+    response_msg = ', '.join(flatten_list(lst))
+    return response_msg
+
+def flatten_list(lst):
+    flattened = []
+    for item in lst:
+        if isinstance(item, list):
+            flattened.extend(flatten_list(item))
+        else:
+            flattened.append(str(item))
+    return flattened
     
     
 def parse_opt():
