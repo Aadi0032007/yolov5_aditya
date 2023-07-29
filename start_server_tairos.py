@@ -25,6 +25,7 @@ from detect import run,load_model
 weights = os.path.join(yolov5_path, 'yolov5x_bottle.pt')  # Replace with the path to your model weights
 iou_thres = 0.55
 augment = True
+debug_save=True
 
 # Create a socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -56,7 +57,7 @@ while True:
                 break
             
             # Convert the image length bytes to an integer
-            img_len = int.from_bytes(img_len_bytes, 'big')
+            img_len = int.from_bytes(img_len_bytes, 'little',signed=False)
             print("Image data length : ",img_len)            
             
             # Receive the image data
@@ -66,8 +67,25 @@ while True:
                 data = conn.recv(4096)
                 # print(len(data),count)
                 if len(data) < 4096:
+                    image_data += data
                     break
                 image_data += data
+                
+            print("recieved image data",len(image_data))
+            
+            total_received = 0
+
+            # while total_received < img_len:
+            #     data = conn.recv(min(4096, img_len - total_received))
+            #     if not data:
+            #         break
+            #     image_data += data
+            #     total_received += len(data)
+    
+            # # If no more data is received or not all data is received, the connection is closed
+            # if not image_data or total_received < img_len:
+            #     print("Connection closed by client or incomplete data received.")
+                # break
                 
 
             # If no more data is received, the connection is closed
@@ -95,7 +113,7 @@ while True:
             # Call the run function
             before = datetime.now()
             output = run(weights=weights, source=temp_image_path, iou_thres=iou_thres,augment=augment,
-                         model=model,stride=stride,names=names,pt=pt)
+                         model=model,stride=stride,names=names,pt=pt,debug_save=debug_save)
             after = datetime.now()
             duration = after - before
             total_time+=int( duration.microseconds // 1000)
@@ -109,7 +127,7 @@ while True:
             response = output.encode()
            
             # encoding rsponse lenghth 
-            response_len = len(response).to_bytes(8, 'big')
+            response_len = len(response).to_bytes(8, 'little',signed=False)
             # print('Sending Response Length')
             conn.send(response_len)
             
@@ -125,5 +143,5 @@ while True:
     finally:
         # Close the connection
         conn.close()
-        print("avg inference time :",total_time//25)
+        print("avg inference time :",total_time)
         sys.exit()

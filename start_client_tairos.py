@@ -27,7 +27,7 @@ def send_image(image_path):
     
 
     # Encode the image as JPEG before sending
-    _, img_encoded = cv2.imencode(".jpg", img)
+    _, img_encoded = cv2.imencode(".bmp", img)
 
     # Convert the encoded image to bytes
     img_bytes = img_encoded.tobytes()
@@ -37,7 +37,7 @@ def send_image(image_path):
     img_len = len(img_bytes)
 
     # Convert the image length to bytes
-    img_len_bytes = img_len.to_bytes(8, 'big')
+    img_len_bytes = img_len.to_bytes(8, 'little',signed=False)
     
     count = 0
     while True:
@@ -57,7 +57,7 @@ def send_image(image_path):
         #time.sleep(20)
         # recive response length
         response_len_bytes = sock.recv(8)
-        response_len = int.from_bytes(response_len_bytes, 'big')
+        response_len = int.from_bytes(response_len_bytes, 'little')
         
         # recive response
         response = sock.recv(response_len)
@@ -72,13 +72,13 @@ def send_image(image_path):
         count+=1
         print("count :",count)
         
-        if (count==25):
+        if (count==1):
             break
     
        
     
 # Replace 'image_path' with the path to your image
-image_path = 'C:/Users/AI/Aditya_project/test_images/Test.jpg'
+image_path = 'C:/Users/AI/Aditya_project/test_images/Test2.jpg'
 # image_path = "C:/Users/user/Downloads/test_image_3.jpg" # change back
 send_image(image_path)
 
