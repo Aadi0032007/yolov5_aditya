@@ -74,14 +74,52 @@ def check_pil_font(font=FONT, size=10):
         
 
 
-def rgb_to_color_name(rgb):
-    # Convert RGB values to normalized values (0 to 1)
-    normalized_rgb = [channel / 255.0 for channel in rgb]
+# def get_color_int(rgb_value):
+#     # Define the color ranges for each color in RGB
+#     color_ranges = {
+#         "red": ((100, 0, 0), (255, 100, 100)),
+#         "green": ((0, 100, 0), (100, 255, 100)),
+#         "blue": ((0, 0, 100), (100, 100, 255)),
+#         "yellow": ((200, 200, 0), (255, 255, 100))
+#     }
 
-    # Find the closest color name in the cnames dictionary
-    closest_color = min(mcolors.CSS4_COLORS, key=lambda color: sum((a - b) ** 2 for a, b in zip(normalized_rgb, mcolors.colorConverter.to_rgba(color)[:3])))
+    
+#     # Check if the RGB value falls within the color range
+#     # for color_int, (color_name, (lower, upper)) in enumerate(color_ranges.items(), start=1):
+#     #     if all(lower[i] <= rgb_value[i] <= upper[i] for i in range(3)):
+#     #         return color_int
+    
+#     # return None
+    
+#     for color_name, (lower, upper) in color_ranges.items():
+#        if all(lower[i] <= rgb_value[i] <= upper[i] for i in range(3)):
+#            return color_name
+    
+#     return None
 
-    return closest_color
+def get_color_int(rgb_value):
+    r, g, b = rgb_value
+    
+    if r >= 200 and g < 100 and b < 100:
+        return "Red"
+    elif r < 100 and g >= 200 and b < 100:
+        return "Green"
+    elif r < 100 and g < 100 and b >= 200:
+        return "Blue"
+    elif r >= 200 and g >= 200 and b < 100:
+        return "Yellow"
+    elif r >= 200 and g >= 200 and 100 <= b < 200:
+        return "Yellowish"  # Yellowish color range
+
+    # If none of the specific colors match, we can assign names to the remaining RGB space
+    if r >= g and r >= b:
+        return "Reddish"
+    elif g >= r and g >= b:
+        return "Greenish"
+    elif b >= r and b >= g:
+        return "Blueish"
+
+    return "Unknown"
 
 # defined function for color and coordinates extraction
 def coordinates_extraction(self, box, label):
@@ -100,7 +138,8 @@ def coordinates_extraction(self, box, label):
     # Convert the mode color to tuple format
     dominant_color = tuple(roi_median_color.tolist())
     dominant_color = tuple(int(channel * brightness_factor) for channel in dominant_color)
-    color = rgb_to_color_name(dominant_color)
+    color = get_color_int(dominant_color)
+    
     
     after = datetime.now()
     duration = after - before

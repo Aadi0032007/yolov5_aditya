@@ -9,6 +9,7 @@ import socket
 import time
 import cv2
 from datetime import datetime
+import numpy as np
 
 # Create a socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -24,7 +25,6 @@ def send_image(image_path):
     global sock
     # Load the image
     img = cv2.imread(image_path)
-    
 
     # Encode the image as JPEG before sending
     _, img_encoded = cv2.imencode(".bmp", img)
@@ -74,12 +74,12 @@ def send_image(image_path):
         
         if (count==1):
             break
-    
-       
+
+
     
 # Replace 'image_path' with the path to your image
 image_path = 'C:/Users/AI/Aditya_project/test_images/Test2.jpg'
-# image_path = "C:/Users/user/Downloads/test_image_3.jpg" # change back
+# image_path = "C:/Users/user/Downloads/test_image_2.jpg" # change back
 send_image(image_path)
 
 
