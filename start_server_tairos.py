@@ -150,7 +150,7 @@ while True:
             print ("==================================")
 
     except Exception as e:
-        print ("Exception: ", e.str())
+        print ("Exception: ", e)
         pass
 
     conn.close()
