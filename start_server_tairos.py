@@ -17,15 +17,25 @@ from datetime import datetime
 # Add YOLOv5 folder to the sys.path
 yolov5_path = "C:/Users/AI/Aditya_project/yolov5_aditya"
 # yolov5_path = "C:/Users/user/Spyder Project/YOLOv5/yolov5_aditya"   # change back
-sys.path.append(yolov5_path) 
+sys.path.append(yolov5_path)
 
 # Import the run function
-from detect import run,load_model
- # Provide the required arguments for the run function
-weights = os.path.join(yolov5_path, 'yolov5x_bottle.pt')  # Replace with the path to your model weights
+from detect import run, load_model
+
+### YOLO model
+# weights = os.path.join(yolov5_path, 'yolov5x_bottle.pt')  # Replace with the path to your model weights
+
+### YOLO - OpenVINO optmized model
+weights = os.path.join(yolov5_path, "yolov5x_bottle_back_openvino_model")
+
 iou_thres = 0.55
+conf_thres = 0.15
 augment = True
-debug_save=True
+debug_save = False  # change to True if want to save image for debugging
+device = "CPU"
+
+# Load the model
+model, stride, names, pt = load_model(weights=weights, device=device)
 
 # Create a socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -41,7 +51,7 @@ total_time = 0
 # Listen for incoming connections
 sock.listen(1)
 print(f"Listening on {host}:{port}")
-model,stride,names,pt = load_model(weights=weights)
+
 
 while True:
     # Wait for a connection
@@ -51,97 +61,96 @@ while True:
     try:
         while True:
             # Receive the image length
-            img_len_bytes = conn.recv(8)
+            print("Waiting for image length")
+            img_len_bytes = conn.recv(4)
             if not img_len_bytes:
-                print("Didn't recieve image length.")
+                # print("Didn't recieve image length.")
                 break
-            
+
             # Convert the image length bytes to an integer
-            img_len = int.from_bytes(img_len_bytes, 'little',signed=False)
-            print("Image data length : ",img_len)            
-            
+            img_len = int.from_bytes(img_len_bytes, "little", signed=False)
+            # print("  Image data length : ",img_len)
+
+            before = time.time()
             # Receive the image data
             image_data = b""
-            while True:
-                count+=1
-                data = conn.recv(4096)
-                # print(len(data),count)
-                if len(data) < 4096:
-                    image_data += data
-                    break
-                image_data += data
-                
-            print("recieved image data",len(image_data))
-            
-            total_received = 0
 
-            # while total_received < img_len:
-            #     data = conn.recv(min(4096, img_len - total_received))
-            #     if not data:
-            #         break
-            #     image_data += data
-            #     total_received += len(data)
-    
-            # # If no more data is received or not all data is received, the connection is closed
-            # if not image_data or total_received < img_len:
-            #     print("Connection closed by client or incomplete data received.")
-                # break
-                
+            # image_data = conn.recv(img_len)
+            to_read_len = img_len
+            data_len = 0
+            while True:
+                count += 1
+                data = conn.recv(to_read_len)
+                # print(len(data)," ", end="")
+                data_len = len(data)
+
+                image_data += data
+                to_read_len -= data_len
+                if to_read_len == 0:
+                    break
+
+            # print("  recieved image data",len(image_data))
+            img_len = len(image_data)
+
+            after = time.time()
+            duration = after - before
+            # print("  transmission time : ",duration * 1000,"ms")
 
             # If no more data is received, the connection is closed
             if not image_data:
                 print("Connection closed by client.")
                 break
-            
-            # print ("Recieved data size: ", len(image_data))
-            # print("Converting Buffer to Arary.")
 
             # Convert the image data to a NumPy array
             nparr = np.frombuffer(image_data, dtype=np.uint8)
 
-            # print("Converting Array to Image.")
             # Decode the NumPy array to an OpenCV image
             img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            
-            # print("Temp file created.")
+            # print("  Image size: ", img.shape)
+
             # Save the cv2 image to a temporary file
-            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_img:
+            with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_img:
                 temp_image_path = tmp_img.name
                 cv2.imwrite(temp_image_path, img)
-            
-            # print("Running detection..")
+
             # Call the run function
-            before = datetime.now()
-            output = run(weights=weights, source=temp_image_path, iou_thres=iou_thres,augment=augment,
-                         model=model,stride=stride,names=names,pt=pt,debug_save=debug_save)
-            after = datetime.now()
+            before = time.time()
+            output = run(
+                weights=weights,
+                source=temp_image_path,
+                iou_thres=iou_thres,
+                conf_thres=conf_thres,
+                augment=augment,
+                model=model,
+                stride=stride,
+                names=names,
+                pt=pt,
+                debug_save=debug_save
+            )
+            after = time.time()
             duration = after - before
-            total_time+=int( duration.microseconds // 1000)
-            print("inference time : ",int( duration.microseconds // 1000),"ms")
+            print("  inference time: ", duration * 1000, " ms")
 
             # Remove the temporary image file
             os.remove(temp_image_path)
-            
-                        
+
             # encoding response
             response = output.encode()
-           
-            # encoding rsponse lenghth 
-            response_len = len(response).to_bytes(8, 'little',signed=False)
-            # print('Sending Response Length')
-            conn.send(response_len)
-            
-            # # Wait for a short delay (optional)
-            # time.sleep(1)
-            
-            # print('Sending Response')
-            # response = 'Add Yolo Output Here'
-            conn.send(response)
-            print('sent response')
-            
+            print ("*** Detected : ", output[0], " bottles")
+            print(response)
 
-    finally:
-        # Close the connection
-        conn.close()
-        print("avg inference time :",total_time)
-        sys.exit()
+            # encoding rsponse lenghth
+            response_len = len(response).to_bytes(8, "little", signed=False)
+
+            # print('  Sending Response Length')
+            conn.send(response_len)
+
+            # print('Sending Response')
+            conn.send(response)
+            print ("==================================")
+
+    except Exception as e:
+        print ("Exception: ", e.str())
+        pass
+
+    conn.close()
