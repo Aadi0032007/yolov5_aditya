@@ -28,10 +28,10 @@ from detect import run, load_model
 ### YOLO - OpenVINO optmized model
 weights = os.path.join(yolov5_path, "yolov5x_bottle_back_openvino_model")
 
-iou_thres = 0.75
+iou_thres = 0.65
 conf_thres = 0.18
 augment = True
-debug_save = True  # change to True if want to save image for debugging
+debug_save = False  # change to True if want to save image for debugging
 device = "CPU"
 
 # Load the model
@@ -68,6 +68,7 @@ while True:
                 break
 
             # Convert the image length bytes to an integer
+            # print("  image len in int: ", img_len_bytes, " len: ", len(img_len_bytes))
             img_len = int.from_bytes(img_len_bytes, "little", signed=False)
             # print("  Image data length : ",img_len)
 
@@ -103,6 +104,7 @@ while True:
 
             # Convert the image data to a NumPy array
             nparr = np.frombuffer(image_data, dtype=np.uint8)
+
             # Decode the NumPy array to an OpenCV image
             img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
             # print("  Image size: ", img.shape)
@@ -111,7 +113,7 @@ while True:
             with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_img:
                 temp_image_path = tmp_img.name
                 cv2.imwrite(temp_image_path, img)
-                
+
             # Call the run function
             before = time.time()
             output = run(
@@ -150,7 +152,7 @@ while True:
 
     except Exception as e:
         print ("Exception: ", e)
-        sys.exit()
-        pass
+        sys.exit(1)
+        #pass
 
     conn.close()

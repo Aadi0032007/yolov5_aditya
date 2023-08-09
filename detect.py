@@ -1,4 +1,4 @@
-# YOLOv5 🚀 by Ultralytics, AGPL-3.0 license
+# YOLOv5 ğŸš€ by Ultralytics, AGPL-3.0 license
 """
 Run YOLOv5 detection inference on images, videos, directories, globs, YouTube, webcam, streams, etc.
 
@@ -58,6 +58,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 def load_model(device='',weights=ROOT / 'yolov5s.pt',half=False, dnn=False, data=ROOT / 'data/coco128.yaml',imgsz=(640, 640)):
     # Load model
+    print("Using device: ", device)
     device = select_device(device)
     model = DetectMultiBackend(weights, device=device, dnn=dnn, data=data, fp16=half)
     stride, names, pt = model.stride, model.names, model.pt
@@ -94,8 +95,11 @@ def run(
         half=False,  # use FP16 half-precision inference
         dnn=False,  # use OpenCV DNN for ONNX inference
         vid_stride=1,  # video frame-rate stride
-        
         debug_save = False, # to save for debugging 
+        area_max = 500000,
+        area_min = 4000,
+        centroid_y_low = 270,
+        centroid_y_high = 1040,
         
         host = "localhost", # added host and port for socket connection
         port = 1234,
@@ -182,7 +186,7 @@ def run(
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             # imc = im0.copy() if save_crop else im0  # for save_crop
             annotator = Annotator(im0, line_width=line_thickness, example=str(names),debug_save=debug_save)
-            # lst.append(len(det)) # number of objects
+            #lst.append(len(det)) # number of objects
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()
@@ -195,13 +199,14 @@ def run(
                 # Write results
                 count = 0
                 for *xyxy, conf, cls in reversed(det):
-                  
+                    #removing small bbox detections
+                    box_area = abs((int(xyxy[2]) - int(xyxy[0])) * (int(xyxy[3]) - int(xyxy[1]))) #removing small bbox detections
+                    if debug_save:
+                        print("box area = ",box_area)
+                    if box_area < area_min or box_area > area_max: #removing small bbox detections
+                        continue
                     
-                  #removing small bbox detections 
-                  box_area = abs((int(xyxy[2]) - int(xyxy[0])) * (int(xyxy[3]) - int(xyxy[1]))) #removing small bbox detections 
-                  print("box area = ",box_area)
-                  if box_area > 4000: #removing small bbox detections 
-                    count += 1 
+                    #count += 1
                     if debug_save:
                         if  save_txt:  # Write to file
                             xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
@@ -212,15 +217,23 @@ def run(
                     if save_img or save_crop or view_img:  # Add bbox to image
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
-                        a = annotator.box_label(xyxy, label, color=colors(c, True),debug_save=debug_save)
-                        # print("fine till here")
-                        lst.append(a) 
-                lst.insert(0, count) #removing small bbox detections 
                         
+                        #calculating time taken for colour extraction and centroid
+                        # before = datetime.now()
+                        a, centroid_y = annotator.box_label(xyxy, label, color=colors(c, True),debug_save=debug_save) 
+                        # after = datetime.now()
+                        # duration = after - before
+                        # print(int(duration.microseconds // 1000),"ms")
+
+                        #print("Centroid_y: ", centroid_y)
+                        if centroid_y > centroid_y_low and centroid_y < centroid_y_high:
+                            lst.append(a)
+                            count += 1
+
+                lst.insert(0, count)
                     # if save_crop:
                         # save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
              
-            
             # Serialize the data
             # serialized_data = pickle.dumps(lst) # remove comment
             # checkpoint_4 = datetime.now()
