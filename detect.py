@@ -182,7 +182,7 @@ def run(
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             # imc = im0.copy() if save_crop else im0  # for save_crop
             annotator = Annotator(im0, line_width=line_thickness, example=str(names),debug_save=debug_save)
-            lst.append(len(det)) # number of objects
+            # lst.append(len(det)) # number of objects
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()
@@ -193,7 +193,15 @@ def run(
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
                 # Write results
+                count = 0
                 for *xyxy, conf, cls in reversed(det):
+                  
+                    
+                  #removing small bbox detections 
+                  box_area = abs((int(xyxy[2]) - int(xyxy[0])) * (int(xyxy[3]) - int(xyxy[1]))) #removing small bbox detections 
+                  print("box area = ",box_area)
+                  if box_area > 4000: #removing small bbox detections 
+                    count += 1 
                     if debug_save:
                         if  save_txt:  # Write to file
                             xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
@@ -204,15 +212,10 @@ def run(
                     if save_img or save_crop or view_img:  # Add bbox to image
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
-                        
-                        #calculating time taken for colour extraction and centroid
-                        # before = datetime.now()
-                        a = annotator.box_label(xyxy, label, color=colors(c, True),debug_save=debug_save) 
-                        # after = datetime.now()
-                        # duration = after - before
-                        # print(int(duration.microseconds // 1000),"ms")
+                        a = annotator.box_label(xyxy, label, color=colors(c, True),debug_save=debug_save)
+                        # print("fine till here")
                         lst.append(a) 
-                        
+                lst.insert(0, count) #removing small bbox detections 
                         
                     # if save_crop:
                         # save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)

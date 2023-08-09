@@ -76,7 +76,8 @@ def check_pil_font(font=FONT, size=10):
 
 def get_color_int(rgb):
     R, G, B = rgb
-    percentage_value = (R * 65536 + G * 256 + B) * 100 // 16777215
+    # percentage_value = (R * 65536 + G * 256 + B) * 100 // 16777215
+    percentage_value = (R * 3 + G * 2 + B)  // 95
     return percentage_value
 
 
@@ -85,12 +86,14 @@ def coordinates_extraction(self, box, label):
     before = datetime.now()
     coord = []
     p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
+
     
     brightness_factor = 1
 
-    # Extract the region of interest (ROI) within the bounding box
+    # # Extract the region of interest (ROI) within the bounding box
     roi = self.im[p1[1]:p2[1], p1[0]:p2[0]]
     
+       
     # Calculate the mode color
     roi_median_color = np.median(roi, axis=(0, 1))
 
@@ -98,7 +101,7 @@ def coordinates_extraction(self, box, label):
     dominant_color = tuple(roi_median_color.tolist())
     dominant_color = tuple(int(channel * brightness_factor) for channel in dominant_color)
     color = get_color_int(dominant_color)
-    
+    print(dominant_color)
     
     after = datetime.now()
     duration = after - before
@@ -152,6 +155,7 @@ class Annotator:
                 # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
                 self.draw.text((box[0], box[1] - h if outside else box[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
+            print("fine till here")
             coord, dominant_color = coordinates_extraction(self, box, label) # calling extraction function
             if debug_save:
                 p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))

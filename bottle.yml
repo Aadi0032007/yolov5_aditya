@@ -1,0 +1,9 @@
+path: C:/Users/user/Downloads/bottle dataset  # dataset root dir
+train: C:/Users/user/Downloads/bottle dataset/train/images_1  
+val: C:/Users/user/Downloads/bottle dataset/val/images_1  
+test:  # test images (optional)
+
+names:
+  0: bottle
+  1: others
+  

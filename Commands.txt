@@ -1,0 +1,2 @@
+1. Convert Pt to OpenVINO bin format
+	$ python export.py --weights yolov5x_bottle_back.pt --imgsz 640 --batch-size 1 --optimize --int8 --iou-thres 0.45 --conf-thres 0.25 --include openvino
