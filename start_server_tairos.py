@@ -33,6 +33,8 @@ conf_thres = 0.18
 augment = True
 debug_save = False  # change to True if want to save image for debugging
 device = "CPU"
+# centroid_y_low = 500,
+# centroid_y_high = 750
 
 # Load the model
 model, stride, names, pt = load_model(weights=weights, device=device)
@@ -141,7 +143,7 @@ while True:
             print(response)
 
             # encoding rsponse lenghth
-            response_len = len(response).to_bytes(8, "little", signed=False)
+            response_len = len(response).to_bytes(4, "little", signed=False)
 
             # print('  Sending Response Length')
             conn.send(response_len)
@@ -149,10 +151,10 @@ while True:
             # print('Sending Response')
             conn.send(response)
             print ("==================================")
-
+            # sys.exit(1)
     except Exception as e:
         print ("Exception: ", e)
         sys.exit(1)
         #pass
-
+        
     conn.close()

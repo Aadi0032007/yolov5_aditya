@@ -83,7 +83,6 @@ def get_color_int(rgb):
 
 # defined function for color and coordinates extraction
 def coordinates_extraction(self, box, label):
-    before = datetime.now()
     coord = []
     p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
 
@@ -101,11 +100,6 @@ def coordinates_extraction(self, box, label):
     dominant_color = tuple(roi_median_color.tolist())
     dominant_color = tuple(int(channel * brightness_factor) for channel in dominant_color)
     color = get_color_int(dominant_color)
-    print(dominant_color)
-    
-    after = datetime.now()
-    duration = after - before
-    # print(int(duration.microseconds)/1000,"ms")
     # print(dominant_color)
     
     # for centroid
@@ -119,7 +113,7 @@ def coordinates_extraction(self, box, label):
     
      
      
-    return coord, dominant_color
+    return coord, dominant_color,centroid_y
 
 
 class Annotator:
@@ -155,8 +149,7 @@ class Annotator:
                 # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
                 self.draw.text((box[0], box[1] - h if outside else box[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
-            print("fine till here")
-            coord, dominant_color = coordinates_extraction(self, box, label) # calling extraction function
+            coord, dominant_color,centroid_y = coordinates_extraction(self, box, label) # calling extraction function
             if debug_save:
                 p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
                 cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
@@ -175,9 +168,8 @@ class Annotator:
                                 txt_color,
                                 thickness=tf,
                                 lineType=cv2.LINE_AA)
-                
-            
-        return(coord) #created for coordinates sharing
+                  
+        return(coord,centroid_y) #created for coordinates sharing
      
 
     def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):

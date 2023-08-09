@@ -218,14 +218,8 @@ def run(
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
                         
-                        #calculating time taken for colour extraction and centroid
-                        # before = datetime.now()
-                        a, centroid_y = annotator.box_label(xyxy, label, color=colors(c, True),debug_save=debug_save) 
-                        # after = datetime.now()
-                        # duration = after - before
-                        # print(int(duration.microseconds // 1000),"ms")
-
-                        #print("Centroid_y: ", centroid_y)
+                        a, centroid_y = annotator.box_label(xyxy, label, color=colors(c, True),debug_save=debug_save)   
+                        # print("Centroid_y: ", centroid_y)
                         if centroid_y > centroid_y_low and centroid_y < centroid_y_high:
                             lst.append(a)
                             count += 1
