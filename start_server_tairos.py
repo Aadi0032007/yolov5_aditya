@@ -15,8 +15,8 @@ import time
 from datetime import datetime
 
 # Add YOLOv5 folder to the sys.path
-yolov5_path = "C:/Users/AI/Aditya_project/yolov5_aditya"
-# yolov5_path = "C:/Users/user/Spyder Project/YOLOv5/yolov5_aditya"   # change back
+# yolov5_path = "C:/Users/AI/Aditya_project/yolov5_aditya"
+yolov5_path = "C:/Users/user/Spyder Project/YOLOv5/yolov5_aditya"   # change back
 sys.path.append(yolov5_path)
 
 # Import the run function
@@ -28,8 +28,8 @@ from detect import run, load_model
 ### YOLO - OpenVINO optmized model
 weights = os.path.join(yolov5_path, "yolov5x_bottle_back_openvino_model")
 
-iou_thres = 0.65
-conf_thres = 0.18
+iou_thres = 0.55
+conf_thres = 0.25
 augment = True
 debug_save = False  # change to True if want to save image for debugging
 device = "CPU"

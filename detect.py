@@ -201,8 +201,8 @@ def run(
                 for *xyxy, conf, cls in reversed(det):
                     #removing small bbox detections
                     box_area = abs((int(xyxy[2]) - int(xyxy[0])) * (int(xyxy[3]) - int(xyxy[1]))) #removing small bbox detections
-                    if debug_save:
-                        print("box area = ",box_area)
+                    # if debug_save:
+                    #     print("box area = ",box_area)
                     if box_area < area_min or box_area > area_max: #removing small bbox detections
                         continue
                     

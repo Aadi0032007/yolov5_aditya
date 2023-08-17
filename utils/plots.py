@@ -85,12 +85,33 @@ def get_color_int(rgb):
 def coordinates_extraction(self, box, label):
     coord = []
     p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
-
+    
+    # Calculate the diagonal length
+    diagonal_length = np.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
+    
+    # Calculate the radius as 1/8th of the diagonal length
+    radius = int(diagonal_length / 8)
+    
+    # Calculate the centroid
+    centroid_x = (box[0] + box[2]) // 2
+    centroid_y = (box[1] + box[3]) // 2
+    
+    
+    # Extract the circular region of interest (ROI) within the bounding box
+    x1 = max(p1[0], int(centroid_x) - radius)
+    y1 = max(p1[1], int(centroid_y) - radius)
+    x2 = min(p2[0], int(centroid_x) + radius)
+    y2 = min(p2[1], int(centroid_y) + radius)
+    
+    roi = self.im[y1:y2, x1:x2]
+    
+    # Draw the circular ROI on the original image
+    cv2.circle(self.im, (int(centroid_x), int(centroid_y)), radius, (0, 255, 0), 2, cv2.LINE_AA)
     
     brightness_factor = 1
 
-    # # Extract the region of interest (ROI) within the bounding box
-    roi = self.im[p1[1]:p2[1], p1[0]:p2[0]]
+    # # # Extract the region of interest (ROI) within the bounding box
+    # roi = self.im[p1[1]:p2[1], p1[0]:p2[0]]
     
        
     # Calculate the mode color
@@ -103,8 +124,6 @@ def coordinates_extraction(self, box, label):
     # print(dominant_color)
     
     # for centroid
-    centroid_x = (box[0] + box[2]) // 2
-    centroid_y = (box[1] + box[3]) // 2
     cv2.circle(self.im, (int(centroid_x), int(centroid_y)), 10, (0,255,0), -1)
     coord.append(color)
     coord.append(int(centroid_x))
