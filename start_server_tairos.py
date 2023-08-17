@@ -15,24 +15,25 @@ import time
 from datetime import datetime
 
 # Add YOLOv5 folder to the sys.path
-# yolov5_path = "C:/Users/AI/Aditya_project/yolov5_aditya"
-yolov5_path = "C:/Users/user/Spyder Project/YOLOv5/yolov5_aditya"   # change back
+yolov5_path = "C:/Users/AI/Aditya_project/yolov5_aditya"
+# yolov5_path = "C:/Users/user/Spyder Project/YOLOv5/yolov5_aditya"   # change back
 sys.path.append(yolov5_path)
 
 # Import the run function
 from detect import run, load_model
 
 ### YOLO model
-# weights = os.path.join(yolov5_path, 'yolov5x_bottle.pt')  # Replace with the path to your model weights
+weights = os.path.join(yolov5_path, 'yolov5x_bottle.pt')  # Replace with the path to your model weights
 
 ### YOLO - OpenVINO optmized model
-weights = os.path.join(yolov5_path, "yolov5x_bottle_back_openvino_model")
+# weights = os.path.join(yolov5_path, "yolov5x_bottle_back_openvino_model")
 
-iou_thres = 0.55
-conf_thres = 0.25
+iou_thres = 0.65
+conf_thres = 0.18
 augment = True
 debug_save = False  # change to True if want to save image for debugging
 device = "CPU"
+fraction_hyp = 1/8
 # centroid_y_low = 500,
 # centroid_y_high = 750
 
@@ -128,7 +129,8 @@ while True:
                 stride=stride,
                 names=names,
                 pt=pt,
-                debug_save=debug_save
+                debug_save=debug_save,
+                fraction_hyp = fraction_hyp
             )
             after = time.time()
             duration = after - before

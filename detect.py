@@ -100,6 +100,7 @@ def run(
         area_min = 4000,
         centroid_y_low = 270,
         centroid_y_high = 1040,
+        fraction_hyp = 1/8,
         
         host = "localhost", # added host and port for socket connection
         port = 1234,
@@ -218,7 +219,7 @@ def run(
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
                         
-                        a, centroid_y = annotator.box_label(xyxy, label, color=colors(c, True),debug_save=debug_save)   
+                        a, centroid_y = annotator.box_label(xyxy, label, color=colors(c, True),debug_save=debug_save, fraction_hyp=fraction_hyp)   
                         # print("Centroid_y: ", centroid_y)
                         if centroid_y > centroid_y_low and centroid_y < centroid_y_high:
                             lst.append(a)
